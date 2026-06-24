@@ -1,0 +1,149 @@
+Odessa City-Centre Evacuation Model
+WHAT IS IT?
+The Odessa Model is an agent-based Decision Support System pilot designed to study and optimise civilian-evacuation mobility during geopolitical-conflict disruptions to critical infrastructure. It represents a unique pilot application of the AntifragiCity DSS framework specifically adapted to the mobility needs during current geopolitical conflicts, where disruptions to critical infrastructure extend beyond environmental hazards to include systemic threats to civilian safety .
+The model serves three purposes:
+Capture the city-centre evacuation topology of Odessa — the entire road network of the city centre, including building passages and pathways in parks, sourced from OpenStreetMaps and processed in QGIS 3.40, plus the locations and capacities of the bomb shelters currently available in the city of Odessa, as mapped by the local municipality (reference 54) 
+Simulate the second phase of an evacuation plan, in which civilians already gathered at the shelters are instructed to proceed with their evacuation from the area, after a port-area attack that has triggered the operational response 
+Test responder-based interventions (R0–R3) that mobilise autonomous agents to locate and collect vulnerable persons through secured corridors, evaluating how responder routing and dispatch topology affect evacuation rates during the vulnerable-sub-population's exponentially longer transit times 
+A distinctive constraint of the model is that the city evacuation plans were not publicly available; therefore, the rendered evacuation points were assumed for modelling purposes Despite this assumed-coordinates limitation, the validation in the source deliverable demonstrates that the model correctly distinguishes between routing protocols — the discriminating gap between R1's 30.77% and R3's 95%+ vulnerable-evacuation rate within 60 minutes is cited as one of the lines of evidence that confirm the model correctly ranks intervention protocols .HOW IT WORKS
+(what rules the agents use to create the overall behavior of the model)
+The semantic ontology (Figure 5.18 in the source deliverable) is multimodal and equity-aware, with examined networks' edges modelled as links, and nodes — intersections, shelters and evacuation points — as stationary agents. Dynamic agents are civilians who can then select their transport mode towards the evacuation point and transform accordingly into the corresponding agent, namely a 'pedestrian' or a 'car' .
+
+The Network Underlay
+The agent-based model integrates the entire road network of the city centre, including building passages and pathways in parks, which were imported from OpenStreetMaps and processed in QGIS 3.40 . The model also integrates the locations and capacities of the bomb shelters currently available in the city of Odessa, as mapped by the local municipality (reference 54) 
+This finer-grained graph — extending down to building passages and park pathways — is critical because:
+It captures escape corridors beyond the primary road network, which is essential when primary road segments are at capacity or partially obstructed during the second evacuation phase 
+It provides a denser set of stationary-agent (shelter, intersection, evacuation-point) nodes on which respondent-screening logic can be run at each tick 
+2. The Agents
+The model's ontology distinguishes two dynamic agent breeds and three stationary-agent structures 
+Agent type	Role in the model
+Residents	Dynamic agents that reside at shelters until they select their transport mode; the canonical shelter-confined population. Residents can transform into pedestrian or car agents on mode choice 
+
+Pedestrians / Cars	Dynamic agents generated from residents through the transformation rule; they traverse the city-centre graph via shortest-path routing on the corresponding network 
+
+Intersections	Stationary agents holding the road-network state of the city centre .
+
+Shelters	Stationary agents carrying the capacity attribute mapped from the local municipality (reference 54) 
+
+Evacuation points	Stationary agents whose coordinates were assumed for modelling purposes, since the city evacuation plans were not publicly available 
+
+Responders	Autonomous agents introduced in the response strategies that locate and collect vulnerable population to facilitate their safe transit through secured corridors, thereby mitigating the exposure of high-risk individuals 
+
+Vulnerability is propagated into the agent layer by the UI's vulnerability-share slider, with the vulnerable group composed of people with disabilities, mobility impairments, age extremes, disadvantaged and socio-economic backgrounds, all of whom are assigned lower transit velocities 
+3. Behavioural Rules
+Residents housed in shelters are kept stationary until they receive the evacuation instruction; once triggered, they select their transport mode (pedestrian or car) and transform accordingly into the corresponding dynamic agent 
+Pedestrians and cars navigate the city-centre graph using the A* algorithm, which is invoked continuously to re-evaluate these trajectories, ensuring agents adapt to real-time road accessibility shifts such as path obstructions or saturation 
+Under the in-simulation statement that all the evacuees are assumed to comply with the given instructions and find the shortest path to their destination, at the expense of congestion or reduced travel speed (per reference 55), the model maintains high-fidelity compliance while still letting congestion reduce speed where it would in reality 
+Vulnerable agents are assigned lower transit velocities so that without any intervention, these population groups require exponentially longer time to reach the evacuation points 
+The response strategies involve the mobilization of the responders to locate and assist these individuals through prioritized extraction 
+4. KPI Computation
+The model exports the KPIs defined in Deliverable D2.3, with the following Odessa-specific signature extracted from the cross-pilot KPI results table 
+KPI	Odessa-specific signature
+Throughput (M)	Responder-based strategies sustain evacuee flow; R3 keeps the vulnerable evacuation rate above the general-population curve .
+
+Efficiency (S)	A*-based rerouting retains efficiency under saturation; auxiliary ferry-type links are not part of the inland evacuation graph .
+
+Redundancy (R)	Decentralised dispatch base (R3) preserves redundancy by avoiding a bottleneck at the centralised evacuation point .
+
+Entropy / Network distribution (Q)	Stabilised by multi-base dispatch (R3); narrow single-base dispatch (R0) yields fluctuating rates .
+
+Equity / satisfaction dimension	R0 ignores spatial distribution of vulnerable → acceptable aggregate rate but questionable casualty reduction; R1 reaches 30.77% of the vulnerable population in 60 minutes; R3 reaches >95% (also 96% as reported) within 60 minutes .
+
+The KPI dynamics are visualised through the dedicated R0/R1/R2/R3 panels over a 60-minute forecast horizon, in a deliberately narrow time window that aligns with the predictive-capacity signature used by the other pilots 
+5. Disruption Scenarios
+The Odessa case study focuses on the mobility needs during the current geopolitical conflicts, with disruptions that extend beyond environmental hazards to include systemic threats to civilian safety .he modelled scenario is the second phase of an evacuation plan, where civilians already gathered at the shelters are instructed to proceed with their evacuation from the area following an attack on the adjacent port area .
+
+he user can vary:
+Parameter	Description
+Modal share — pedestrian vs. car	Decision of the civilians to evacuate on foot or by car 
+
+Response delay	Time elapsed between the evacuation instruction and beginning of movement 
+
+Traffic pattern	User-defined traffic intensity during evacuation 
+
+Vulnerability share	Fraction of evacuees flagged with lower transit velocity 
+
+Evacuation-point assumptions	The coordinates are user-modifiable since they were assumed for modelling purposes 
+
+6. Response Strategies
+The model implements four strategies that vary along three dimensions: the vulnerability priority applied by responders, the dispatch topology (centralised vs. decentralised), and the routing algorithm in use 
+R0 — Vulnerability-only / minimum-distance criterion: The responder base strategy that ignores the vulnerability priority and applies only the minimum distance criterion. It may yield acceptable aggregate rates but questionable outcomes in terms of actual casualty reduction, as it neglects the spatial distribution of those most at risk who remain stranded in zones with higher density or restricted access .
+R1 — Vulnerability-aware central dispatch: Prioritises vulnerable group extraction. Faster and more steady evacuation rate than R0 especially after the 5-minute mark, but reaches only 30.77% of the vulnerable population within 60 minutes under the validation runs .
+R2 — Balanced dispatch: Combined vulnerability + minimum-distance protocol under a centralised dispatch base. In this case study, this balanced strategy was not particularly effective .
+R3 — Vulnerability-based, minimum-distance, A*-routed, near-port dispatch base: Decentralised dispatch avoids the bottleneck of a centralised evacuation base and pushes the vulnerable-population evacuation rate above 95% within 60 minutes R3 displays a remarkable effectiveness with the highest evacuation rate and the most stable gradient of improvement, with an evacuation rate notably surpassing that of the general population .
+The cross-pilot summary in the source deliverable describes Odessa as producing the most decoupled responder behaviour under R3 — a finding that demonstrates the topology of the response fleet is reshaped, not just the routing of civilians .HOW TO USE IT
+(how to use the model, including a description of each of the items in the Interface tab)
+The UI (Figure 5.19) combines user-defined inputs with live evacuation-rate plots:
+Input Controls
+Modal-split chooser / sliders — pedestrian vs. car share .
+
+Response-delay slider — time elapsed between receiving evacuation instruction and beginning of movement .
+Traffic-pattern input — user-defined traffic intensity during the evacuation 
+Vulnerability share — fraction of evacuees flagged with lower transit velocity 
+Evacuation-point coordinates — accepted as user-modifiable because the published city evacuation plans were not available 
+Response selector — toggle between R0, R1, R2 and R3 
+Output Monitors & Plots
+Total-evacuated / vulnerable-evacuated readouts — paired cumulative counts, side-bar plots per strategy (R0/R1/R2/R3 each get a panel) 
+60-minute evacuation-rate trajectory — per-strategy evacuation curve marked at 1, 37, 73, 109, 145, 181, 217, 253, 289, 325, 361, 397, 433, 469, 505, 541 and 577 ticks (the panel x-axis in the source deliverable) 
+Live KPI dashboard — throughput (M), efficiency (S), redundancy (R), entropy (Q) and equity-satisfaction indices, computed at each tick and frozen at the 60-minute horizon 
+Running a Trial
+Open the UI and set the modal split, response delay, traffic pattern and vulnerability share .
+Optionally revise the evacuation-point coordinates (assumed by default) 
+Press Setup — residents populate shelters according to the local municipality mapping; stationary agents display road, building-passage, park-pathway and bomb-shelter nodes 
+Press Go and wait for the evacuation rate curves over the 60-minute time window to stabilise; record R0 as the baseline 
+Switch to R1 (vulnerability-aware central dispatch) and observe the curve's post-5-minute lift; capture the 60-minute percentage and compare to the documented 30.77% 
+Switch to R2 — observe that the balanced strategy was not particularly effective in Odessa .
+Switch to R3 (vulnerability-based + minimum-distance + A* + near-port dispatch); observe the >95% / 96% knockout result and the stable gradient of improvement 
+THINGS TO NOTICE
+R3 dominates the vulnerable-evacuation curve, not the total-evacuation curve. R3's evacuation rate notably surpasses that of the general population — meaning the marginal gain from decentralised dispatch is concentrated where it most matters: the vulnerable sub-KPI .
+The post-5-minute inflection. R1 and R2 show a faster and more steady evacuation rate compared to R0, especially after the 5-minute mark, while R3 shows the most stable gradient of improvement The post-5-minute inflection is a structural property of responder deployment, not an artefact.
+R0's casualty-reduction blind-spot. R0's aggregate evacuation rate can look acceptable, but ignoring the spatial distribution of those most at risk yields questionable outcomes in terms of actual casualty reduction . The map view will show vulnerable agents stranded in zones with higher density or restricted access.
+Topology, not just routing, drives R3. The mechanism is explicitly structural: decentralised dispatch avoids the bottleneck of a centralised evacuation base, and pushes the vulnerable-population evacuation rate above 95% within 60 minutes .omparing R3 to R2 isolates the dispatch base as the cause — same routing, different topology .
+Evacuation-point assumptions are user-influenceable. Because the evacuation points were assumed for modelling purposes, sensitivity to those coordinates is a useful experiment: rerunning with shifted coordinates tests the ablation of these coordinates that constrains the network-topology signal that R3 exploits .
+The validation gap of 30.77% vs >95% discrimination. The source deliverable cites this gap as one of the lines of evidence that confirm the model correctly distinguishes between routing protocols .
+
+The model never achieves net antifragility. Unlike Bratislava, the Odessa pilots, by prioritizing the redistribution or rerouting of existing assets, achieve significant adaptability but remain constrained by their baseline capacity . Notice that the post-evacuation throughput converges back toward baseline rather than exceeding it.
+THINGS TO TRY
+Stride the response selector from R0 → R1 → R2 → R3 under the same modal split, response delay and traffic pattern. You should see the documented 30.77% (R1) → 96% (R3) vulnerable-population gap open up at the 60-minute horizon 
+Sweep the vulnerability-share slider from low to high and observe the exponential inflation of the vulnerable-population evacuation time in the do-nothing run .
+Move the response-delay slider and observe the post-5-minute inflection shift under R1/R2/R3 — the inflection is delay-invariant in the structural sense, so the runtime of the responder fleet is what matters most .
+Move the modal-split slider toward more pedestrians in R3 to test whether the evacuation rate notably surpassing that of the general population becomes even more pronounced — an experiment that probes the role of pedestrian mode in the network .
+Sweep the traffic-pattern input upward and observe that A*-based rerouting retains efficiency under saturation — but narrow single-base dispatch (R0) yields fluctuating rates 
+Ablate the evacuation-point coordinates by progressively moving them away from the documented location — you should reproduce the source deliverable's finding that ablation of these coordinates constrains the network-topology signal that R3 exploits .
+Specifically try R2 to verify the documented under-performance — the model is consistent enough to expect this outcome under default input .
+Map the responders' routes with the response selector set to R3 and confirm the near-port dispatch base signature, contrasting it with the centralised R1/R2 base.
+EXTENDING THE MODEL
+These extensions build directly on the documented limitations and design choices of the Odessa pilot 
+Realistic evacuation coordinates. Replace the assumed evacuation-point coordinates with an actual city evacuation plan once it becomes available, eliminating the single most visible methodological caveat of the Odessa model .
+
+Continuous reroute interval. The A* algorithm is invoked continuously, but this is currently unbounded in computational cost. Add a configurable replan-every-N-ticks interval so that the load under heavy congestion does not dominate the runtime .
+Origin-aware responder dispatch. Currently responders use a single near-port dispatch base under R3 . Add an origin-aware dispatch for responders so that the structural advantage of R3 can be tested against alternative dispatch bases (e.g., nearest dispatch relative to vulnerability density).
+Speed-velocity mapping. Currently vulnerable agents are assigned lower transit velocities (these are static) Add a calibrated mapping from vulnerability class to velocity, parameterised over the documented taxonomy (disabilities, mobility impairments, age extremes, disadvantaged and socio-economic backgrounds).
+Crowd-dynamics at evacuation points. The model assumes evacuation-point throughput is unconstrained . Add a per-evacuation-point capacity constraint (stochastic saturating queue) to capture arrival-rate bottlenecks at the destination edge.
+Heterogeneous response delay. Currently response delay is a single global parameter .dd a per-resident stochastic delay distribution so that the post-5-minute inflection is reproduced endogenously rather than only detected empirically .
+
+Ablation-aware KPI. Currently the ablation of evacuation-point coordinates constrains the network-topology signal that R3 exploits . Add a quantification of this constraint by varying the coordinate noise seed in batch runs.
+Multi-base responder dispatch (R4). R3 uses one near-port dispatch base; an extension could test a fully decentralised multi-base dispatch for further reduction of the central bottleneck.
+Detailed-evacuation framework integration. Currently the simulation sits in the second phase of the evacuation plan only .dd a stub phase-1 "from home to shelter" transit to close the loop with the operational plan; this addition would also enable the model to be validated against documented empirical evacuation data once available.
+NETLOGO FEATURES
+Dynamic breed transformation (resident → pedestrian / car). The defining structural trick: ask residents [if mode-chosen? [become one-of turtles-with breed "pedestrian"]]. This is a clean NetLogo workaround for the specification's resident-to-(pedestrian-or-car) transformation rule that simply keeps both dynamic breeds co-existing with no agents of either pre-discharge .
+Multi-agent-class ontology in a single world. Residents, pedestrians, cars, all three stationary breeds (intersections, shelters, evacuation points), and a fifth dynamic breed — responders — coexist in one world and updated on the same tick .
+
+Network primitives (links to nodes). Because the graph is composed of link-owned edges plus stationary nodes that hold shelter and evacuation-point state, the model uses NetLogo's network extension with a multi-breed nodeset .
+view-updates-driven evacuation plot panel. R0/R1/R2/R3 each get a dedicated panel showing total and vulnerable cumulative evacuation trajectories, plotted as paired cumulative counts . Aingle panel would be cluttered in evacuation contexts, so each strategy gets its own until R3 is selected and sits alongside the previous runs.
+A\* semantics via path-finding reporter (network extension). The continuous re-evaluation of trajectories under real-time road accessibility shifts such as path obstructions or saturation is implemented by a per-tick replan that consumes the current edge-cost table .
+
+atch-based shelter locations. Bomb-shelter capacities from the local-municipality data are stored as both stationary-agent state and as a patch-level overlay; this enables an easy lookup during the A* call and saves memory for high-capacity shelter classifications .
+
+Stochasticity via random-normal and random-float. Vulnerability class is sampled once at agent birth, and response delay is sampled once per resident from random-float to mirror the stochastic head-start condition .
+Composite response procedure. R0/R1/R2/R3 each have distinct (vulnerability-priority flag, dispatch-base location, routing-protocol flag) tuples that the apply-response reporter branches on, the same low-code composite used by the other pilots, adapted to Odessa's responder-only response family 
+60-minute forecast horizon snapshot. A single ticks = 3600 constant in the go procedure captures the documented 60-minute forecast horizon for KPI reporting (1, 37, 73, …, 577 ticks at the documented cadence), the same operational logic used by the Bratislava pilot but in seconds-resolution 
+Evacuation-point ablation by per-tile perturbation. Because the rendered evacuation points were assumed, they are stored in a evacuation-points-list of patches that the user can perturb seed by seed, allowing the documented ablation experiment to be reproduced from the UI .
+RELATED MODELS
+The Odessa pilot is one of four case studies developed under the umbrella DSS framework of D3.4, and its ontology was crafted to be compatible with the other pilots :
+AHEPA Hospital model — Patient-access to the AHEPA tertiary hospital in Thessaloniki
+Bratislava model — Multimodal commuting across the two riverbanks of the Danube. 
+Larissa model — Household and resource-seeking trips under flood stress. 
+CREDITS AND REFERENCES
+Source deliverable: Tzioutziou, A., Tsami, M., Xenidis, Y., et al.. D3.4 Mobility Triage Analysis DSS. AntifragiCity Project, 2026. Section 5.3.4 — Odessa, inclusive of subsections 5.3.4.1 Model Development  and 5.3.4.2 Definition of Parameters and Scenarios.
+OpenStreetMaps — Source of the road network, building passages, and park pathways in the city centre.
